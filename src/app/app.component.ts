@@ -58,7 +58,7 @@ export class AppComponent implements OnInit {
 
     let key = 0;
     const rotateSide = (sd: string) => {
-      this.rotateService.rotateSide(sd).then(result => {
+      this.rotateService.rotateSide(sd).then(() => {
 
         key++;
 

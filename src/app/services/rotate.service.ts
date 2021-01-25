@@ -42,6 +42,14 @@ export class RotateService {
       8: 9,
       10: 11
     },
+    F: {
+      0: 1,
+      2: 3,
+      4: 11,
+      6: 9,
+      8: 5,
+      10: 7
+    },
     L: {
       0: 5,
       2: 7,
@@ -73,6 +81,14 @@ export class RotateService {
       6: 3,
       8: 9,
       10: 11
+    },
+    Fa: {
+      0: 1,
+      2: 3,
+      4: 9,
+      6: 11,
+      8: 7,
+      10: 5
     }
   };
 
@@ -223,6 +239,10 @@ export class RotateService {
     return new Promise(resolve => {
       if (side === 'R') {
         this.rotateR();
+      } else if (side === 'F') {
+        this.rotateF();
+      } else if (side === 'Fa') {
+        this.rotateFa();
       } else if (side === 'L') {
         this.rotateL();
       } else if (side === 'La') {
@@ -332,6 +352,34 @@ export class RotateService {
       axis: 'z',
       start: 0,
       side: 'Ra',
+      returnPromise: false
+    };
+  }
+
+  private rotateF(): void {
+    const movingCubes = this.getMovingCubes('x', false);
+
+    this.rotateObj = {
+      rotating: true,
+      cubes: movingCubes,
+      direction: false,
+      axis: 'x',
+      start: 0,
+      side: 'F',
+      returnPromise: false
+    };
+  }
+
+  private rotateFa(): void {
+    const movingCubes = this.getMovingCubes('x', false);
+
+    this.rotateObj = {
+      rotating: true,
+      cubes: movingCubes,
+      direction: true,
+      axis: 'x',
+      start: 0,
+      side: 'Fa',
       returnPromise: false
     };
   }

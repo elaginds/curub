@@ -6,5 +6,7 @@
   <button class="buttons-down" [disabled]="buttonDisabled" *ngFor="let button of buttonsDown" (click)="onClick(button)">{{button}}</button>
   <br>
   <button class="buttons-down" [disabled]="buttonDisabled" (click)="onRandomClick()">Random</button>
-  <button class="buttons-down" [disabled]="buttonDisabled || !randomOne" (click)="onRandomSolveClick()">Random solve</button>
+  <button class="buttons-down" [disabled]="buttonDisabled || !savedMoves.length" (click)="onSolveClick()">Solve</button>
+  <br>
+  <p class="saved-moves">{{savedMovesView}}</p>
 </div>
