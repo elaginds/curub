@@ -1,0 +1,21 @@
+.control {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+
+  button {
+    width: 60px;
+    height: 25px;
+    margin: 10px;
+    background-color: lightskyblue;
+    border: none;
+
+    :disabled {
+      background-color: chocolate;
+    }
+  }
+
+  .buttons-down {
+    width: 140px;
+  }
+}

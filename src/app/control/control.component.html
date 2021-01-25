@@ -1,0 +1,10 @@
+<div class="control">
+  <button [disabled]="buttonDisabled" *ngFor="let button of buttonsUp" (click)="onClick(button)">{{button}}</button>
+  <br>
+  <button [disabled]="buttonDisabled" *ngFor="let button of buttonsMiddle" (click)="onClick(button)">{{button}}</button>
+  <br>
+  <button class="buttons-down" [disabled]="buttonDisabled" *ngFor="let button of buttonsDown" (click)="onClick(button)">{{button}}</button>
+  <br>
+  <button class="buttons-down" [disabled]="buttonDisabled" (click)="onRandomClick()">Random</button>
+  <button class="buttons-down" [disabled]="buttonDisabled || !randomOne" (click)="onRandomSolveClick()">Random solve</button>
+</div>
