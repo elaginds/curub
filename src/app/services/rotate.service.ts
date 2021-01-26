@@ -13,6 +13,7 @@ export class RotateService {
     direction: boolean,
     axis: string | null,
     start: null | number,
+    stop: null | number,
     side: string | null,
     returnPromise: boolean
   }  = {
@@ -21,9 +22,12 @@ export class RotateService {
     direction: true,
     axis: null,
     start: null,
+    stop: null,
     side: null,
     returnPromise: false
   };
+
+  ticks = 0;
 
   private colorsMesh = {
     U: {
@@ -91,6 +95,48 @@ export class RotateService {
       10: 5
     }
   };
+  private rotationParameters = {
+    R: {
+      axis: 'z',
+      isPlus: true,
+      direction: true
+    },
+    Ra: {
+      axis: 'z',
+      isPlus: true,
+      direction: false
+    },
+    L: {
+      axis: 'z',
+      isPlus: false,
+      direction: true
+    },
+    La: {
+      axis: 'z',
+      isPlus: false,
+      direction: false
+    },
+    U: {
+      axis: 'y',
+      isPlus: true,
+      direction: true
+    },
+    Ua: {
+      axis: 'y',
+      isPlus: true,
+      direction: false
+    },
+    F: {
+      axis: 'x',
+      isPlus: false,
+      direction: false
+    },
+    Fa: {
+      axis: 'x',
+      isPlus: false,
+      direction: true
+    }
+  };
 
   renderer: THREE.WebGLRenderer | null = null;
   scene: THREE.Scene | null = null;
@@ -152,15 +198,17 @@ export class RotateService {
   }
 
   private rotate(): void {
-
-    if (!this.rotateObj.start) {
-      // @ts-ignore
-      this.rotateObj.start = this.rotateObj.cubes[0].rotation[this.rotateObj.axis];
+    if (this.rotateObj.cubes) {
+      this.rotateSimple();
+    } else {
+      this.rotateScene();
     }
+  }
 
+  private rotateSimple(): void {
     const vector = new THREE.Vector3(this.rotateObj.axis === 'x' ? 1 : 0,
-                                     this.rotateObj.axis === 'y' ? 1 : 0,
-                                     this.rotateObj.axis === 'z' ? 1 : 0);
+      this.rotateObj.axis === 'y' ? 1 : 0,
+      this.rotateObj.axis === 'z' ? 1 : 0);
 
     this.quaternion.setFromAxisAngle(vector.normalize(), (this.rotateObj.direction ? -1 : 1 ) * this.quaternionAngle);
 
@@ -177,13 +225,31 @@ export class RotateService {
     });
 
     // @ts-ignore
-    /*if (Math.abs(this.rotateObj.cubes[0].rotation[this.rotateObj.axis] - this.rotateObj.start) >= this.PI2) {
-      this.refreshCubs();
-    }*/
-
-    // @ts-ignore
     if (Math.abs(this.rotateObj.cubes[0].rotation[this.rotateObj.axis]) >= this.PI2) {
       this.refreshCubs();
+    }
+  }
+
+  private rotateScene(): void {
+    if (!this.scene || !this.scene.rotation) {
+      return;
+    }
+
+    this.ticks++;
+
+    // console.log(Math.abs(this.scene?.rotation.y), this.rotateObj.stop);
+
+    console.log(this.ticks);
+
+    // @ts-ignore
+    this.scene.rotation.y += -0.05;
+
+    // @ts-ignore
+    // if (Math.abs(this.scene?.rotation.y) - this.rotateObj.stop > 0.5) {
+    if (this.ticks >= 32) {
+      this.ticks = 0;
+      this.rotateObj.rotating = false;
+      this.rotateObj.returnPromise = true;
     }
   }
 
@@ -200,7 +266,7 @@ export class RotateService {
     this.putCubes();
   }
 
-  refreshCube(cube: THREE.Mesh): void {
+  private refreshCube(cube: THREE.Mesh): void {
     cube.rotation.set(0, 0, 0);
 
     for (let i = 0; i < 12; i = i + 2) {
@@ -236,23 +302,13 @@ export class RotateService {
   }
 
   public rotateSide(side: string): Promise<boolean> {
+    const s = side[0];
+
     return new Promise(resolve => {
-      if (side === 'R') {
-        this.rotateR();
-      } else if (side === 'F') {
-        this.rotateF();
-      } else if (side === 'Fa') {
-        this.rotateFa();
-      } else if (side === 'L') {
-        this.rotateL();
-      } else if (side === 'La') {
-        this.rotateLa();
-      } else if (side === 'U') {
-        this.rotateU();
-      } else if (side === 'Ua') {
-        this.rotateUa();
-      } else if (side === 'Ra') {
-        this.rotateRa();
+      if (s === 'R' || s === 'L' || s === 'U' || s === 'F') {
+        this.prepareRotateSimple(side);
+      } else if (s === 'y') {
+        this.prepareRotateScene(side);
       }
 
       const interval = setInterval(() => {
@@ -272,114 +328,37 @@ export class RotateService {
     });
   }
 
-  private rotateR(): void {
-    const movingCubes = this.getMovingCubes('z', true);
+  private prepareRotateSimple(side: string): void {
+    // @ts-ignore
+    const movingCubes = this.getMovingCubes(this.rotationParameters[side].axis, this.rotationParameters[side].isPlus);
 
     this.rotateObj = {
       rotating: true,
       cubes: movingCubes,
+      // @ts-ignore
+      direction: this.rotationParameters[side].direction,
+      // @ts-ignore
+      axis: this.rotationParameters[side].axis,
+      start: 0,
+      stop: 0,
+      side,
+      returnPromise: false
+    };
+  }
+
+  private prepareRotateScene(side: string): void {
+    this.rotateObj = {
+      rotating: true,
+      cubes: null,
+      // @ts-ignore
       direction: true,
+      // @ts-ignore
       axis: 'z',
-      start: 0,
-      side: 'R',
-      returnPromise: false
-    };
-  }
-
-  private rotateL(): void {
-    const movingCubes = this.getMovingCubes('z', false);
-
-    this.rotateObj = {
-      rotating: true,
-      cubes: movingCubes,
-      direction: true,
-      axis: 'z',
-      start: 0,
-      side: 'L',
-      returnPromise: false
-    };
-  }
-
-  private rotateLa(): void {
-    const movingCubes = this.getMovingCubes('z', false);
-
-    this.rotateObj = {
-      rotating: true,
-      cubes: movingCubes,
-      direction: false,
-      axis: 'z',
-      start: 0,
-      side: 'La',
-      returnPromise: false
-    };
-  }
-
-  private rotateU(): void {
-    const movingCubes = this.getMovingCubes('y', true);
-
-    this.rotateObj = {
-      rotating: true,
-      cubes: movingCubes,
-      direction: true,
-      axis: 'y',
-      start: 0,
-      side: 'U',
-      returnPromise: false
-    };
-  }
-
-  private rotateUa(): void {
-    const movingCubes = this.getMovingCubes('y', true);
-
-    this.rotateObj = {
-      rotating: true,
-      cubes: movingCubes,
-      direction: false,
-      axis: 'y',
-      start: 0,
-      side: 'Ua',
-      returnPromise: false
-    };
-  }
-
-  private rotateRa(): void {
-    const movingCubes = this.getMovingCubes('z', true);
-
-    this.rotateObj = {
-      rotating: true,
-      cubes: movingCubes,
-      direction: false,
-      axis: 'z',
-      start: 0,
-      side: 'Ra',
-      returnPromise: false
-    };
-  }
-
-  private rotateF(): void {
-    const movingCubes = this.getMovingCubes('x', false);
-
-    this.rotateObj = {
-      rotating: true,
-      cubes: movingCubes,
-      direction: false,
-      axis: 'x',
-      start: 0,
-      side: 'F',
-      returnPromise: false
-    };
-  }
-
-  private rotateFa(): void {
-    const movingCubes = this.getMovingCubes('x', false);
-
-    this.rotateObj = {
-      rotating: true,
-      cubes: movingCubes,
-      direction: true,
-      axis: 'x',
-      start: 0,
-      side: 'Fa',
+      // @ts-ignore
+      start: Math.abs(this.scene.rotation.y),
+      // @ts-ignore
+      stop: Math.abs(this.scene.rotation.y - 0.5),
+      side,
       returnPromise: false
     };
   }

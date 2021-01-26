@@ -10,7 +10,7 @@ export class ControlComponent {
   @Input() set disableButtons(controls: any) {
     this.buttonDisabled = controls.disableButtons;
   }
-  public buttonsUp = ['R', 'U', 'L', 'F'];
+  public buttonsUp = ['R', 'U', 'L', 'F', 'y'];
   public buttonsMiddle = ['Ra', 'Ua', 'La', 'Fa'];
   public buttonsDown = ['R U Ra Ua', 'R U Ra Ua R U Ra Ua R U Ra Ua R U Ra Ua R U Ra Ua R U Ra Ua'];
   public buttonDisabled = false;
