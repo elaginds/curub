@@ -1,4 +1,5 @@
 <div id="container"></div>
 
 <app-control (emitSideClick)="onSideClick($event)"
+             (emitSolveClick)="solveService.getSolve($event)"
              [disableButtons]="emitControls"></app-control>

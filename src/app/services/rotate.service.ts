@@ -137,6 +137,11 @@ export class RotateService {
       direction: true
     }
   };
+  private rotationScene = {
+    x: 0,
+    y: 0,
+    z: 0
+  };
 
   renderer: THREE.WebGLRenderer | null = null;
   scene: THREE.Scene | null = null;
@@ -239,10 +244,8 @@ export class RotateService {
 
     // console.log(Math.abs(this.scene?.rotation.y), this.rotateObj.stop);
 
-    console.log(this.ticks);
-
     // @ts-ignore
-    this.scene.rotation.y += -0.05;
+    this.scene.rotation.y += (this.rotateObj.direction ? -1 : 1) * 0.05;
 
     // @ts-ignore
     // if (Math.abs(this.scene?.rotation.y) - this.rotateObj.stop > 0.5) {
@@ -250,6 +253,14 @@ export class RotateService {
       this.ticks = 0;
       this.rotateObj.rotating = false;
       this.rotateObj.returnPromise = true;
+
+      this.rotationScene.y += this.rotateObj.direction ? 1 : -1;
+
+      if (this.rotationScene.y === 4) {
+        this.rotationScene.y = 0;
+      } else if (this.rotationScene.y === -1) {
+        this.rotationScene.y = 3;
+      }
     }
   }
 
@@ -321,7 +332,13 @@ export class RotateService {
     });
   }
 
+
+
   private getMovingCubes(axis: string, isPlus: boolean): (THREE.Mesh[] | undefined) {
+    if (this.rotationScene.y === 1 || this.rotationScene.y === 3) {
+      axis = 'z';
+    }
+
     return this.cubs?.filter((cube: THREE.Mesh) => {
       // @ts-ignore
       return (cube.position[axis] === (isPlus ? 1 : -1) * this.nextCubePosition);
@@ -351,7 +368,7 @@ export class RotateService {
       rotating: true,
       cubes: null,
       // @ts-ignore
-      direction: true,
+      direction: !Boolean(side [1]),
       // @ts-ignore
       axis: 'z',
       // @ts-ignore

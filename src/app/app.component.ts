@@ -5,6 +5,8 @@ import {CubsService} from './services/cubs.service';
 import {ColorsService} from './services/colors.service';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
 import {RotateService} from './services/rotate.service';
+import {SolveService} from './services/solve.service';
+import {RotateControlService} from './services/rotate-control';
 
 @Component({
   selector: 'app-root',
@@ -28,7 +30,9 @@ export class AppComponent implements OnInit {
 
   constructor(private colorsService: ColorsService,
               private cubsService: CubsService,
-              private rotateService: RotateService) {
+              private rotateService: RotateService,
+              private rotateControlService: RotateControlService,
+              public solveService: SolveService) {
     const colors = colorsService.createColors();
     this.cubs = cubsService.createCubs(colors);
   }
@@ -55,8 +59,8 @@ export class AppComponent implements OnInit {
 
   public onSideClick(side: string): void {
     const sideArr = side.split(' ');
-
     let key = 0;
+
     const rotateSide = (sd: string) => {
       this.rotateService.rotateSide(sd).then(() => {
 
@@ -73,5 +77,7 @@ export class AppComponent implements OnInit {
     };
 
     rotateSide(sideArr[key]);
+
+    this.rotateControlService.getRotateParameters(this.cubs, sideArr[key]);
   }
 }

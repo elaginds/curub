@@ -11,7 +11,7 @@ export class ControlComponent {
     this.buttonDisabled = controls.disableButtons;
   }
   public buttonsUp = ['R', 'U', 'L', 'F', 'y'];
-  public buttonsMiddle = ['Ra', 'Ua', 'La', 'Fa'];
+  public buttonsMiddle = ['Ra', 'Ua', 'La', 'Fa', 'ya'];
   public buttonsDown = ['R U Ra Ua', 'R U Ra Ua R U Ra Ua R U Ra Ua R U Ra Ua R U Ra Ua R U Ra Ua'];
   public buttonDisabled = false;
   private sidesForRandom: string[] = this.buttonsUp.concat(this.buttonsMiddle);
@@ -19,6 +19,7 @@ export class ControlComponent {
   public savedMoves = [];
 
   @Output() emitSideClick = new EventEmitter();
+  @Output() emitSolveClick = new EventEmitter();
 
   public get savedMovesView(): string {
     return  this.savedMoves.join(' ').replace(/a/g, '\'');
@@ -54,9 +55,16 @@ export class ControlComponent {
     this.saveMove(this.randomOne);
   }
 
-  public onSolveClick(): void {
+  public onReverseSolveClick(): void {
     this.buttonDisabled = true;
     this.emitSideClick.emit(this.inverseRandom());
+    this.randomOne = '';
+    this.savedMoves = [];
+  }
+
+  public onTrueSolveClick(): void {
+    this.buttonDisabled = true;
+    this.emitSolveClick.emit(this.savedMoves);
     this.randomOne = '';
     this.savedMoves = [];
   }
