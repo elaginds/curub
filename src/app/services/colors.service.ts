@@ -14,6 +14,7 @@ export class ColorsService {
     0: 0x000000
   };
 
+  // [0 - back, 1 - front, 2 - up, 3 - down, 4 - right, 5 - left]
   colorsMask = [
     [0, 1, 0, 1, 0, 1],
     [0, 0, 0, 1, 0, 1],

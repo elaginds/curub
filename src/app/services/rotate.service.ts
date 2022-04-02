@@ -1,5 +1,8 @@
 import {EventEmitter, Injectable, Output} from '@angular/core';
 import * as THREE from 'three';
+import {SceneParameters} from '../classes/SceneParameters';
+import {RotateSideParameters} from '../classes/RotateSideParameters';
+import {RotateSideService} from './rotate-side.service';
 
 @Injectable({
   providedIn: 'root'
@@ -29,7 +32,7 @@ export class RotateService {
 
   ticks = 0;
 
-  private colorsMesh = {
+  /*private colorsMesh = {
     U: {
       0: 11,
       2: 9,
@@ -94,7 +97,7 @@ export class RotateService {
       8: 7,
       10: 5
     }
-  };
+  };*/
   private rotationParameters = {
     R: {
       axis: 'z',
@@ -149,13 +152,13 @@ export class RotateService {
   quaternion: THREE.Quaternion = new THREE.Quaternion();
   quaternionAngle = 0.07;
 
-  testCube = 0;
+  private rotateParameters = new RotateSideParameters();
 
   @Output() requestRefresh = new EventEmitter();
 
   private cubs: THREE.Mesh[] | null = null;
 
-  private static bringRotation(axis: string, vector: THREE.Euler): number {
+  /*private static bringRotation(axis: string, vector: THREE.Euler): number {
     // @ts-ignore
     const original = vector[axis];
 
@@ -167,9 +170,9 @@ export class RotateService {
 
     // @ts-ignore
     return (Math.PI / 2) * parseInt(count, 10);
-  }
+  }*/
 
-  private static bringPosition(value: number): number {
+  /*private static bringPosition(value: number): number {
     let result = parseFloat(value.toFixed(1));
 
     if (result === -0) {
@@ -177,24 +180,40 @@ export class RotateService {
     }
 
     return result;
+  }*/
+
+  constructor(private rotateSideService: RotateSideService) {
   }
 
-  public runAnimate(renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera, cubs: THREE.Mesh[]): void {
-    this.cubs = cubs;
-    this.renderer = renderer;
-    this.scene = scene;
-    this.camera = camera;
+  /* Запуск анимации */
+  public runAnimate(sceneParameters: SceneParameters): void {
+
+    // renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera, cubs: THREE.Mesh[]
+    this.cubs = sceneParameters.cubs;
+    this.renderer = sceneParameters.renderer;
+    this.scene = sceneParameters.scene;
+    this.camera = sceneParameters.camera;
 
     this.animate();
   }
 
+  /* Если this.rotateParameters.rotating - запускаем поворот (this.rotateSideService.rotate) */
   private animate(): void {
+
     requestAnimationFrame(() => {
       this.animate();
     });
 
-    if (this.rotateObj.rotating) {
-      this.rotate();
+    if (this.rotateParameters.rotating) {
+      if (this.rotateParameters.isSide) {
+        this.rotateSideService.rotate(this.rotateParameters, this.scene, this.cubs).then(result => {
+          if (result) {
+            this.rotateParameters = new RotateSideParameters();
+          }
+        });
+      } else {
+
+      }
     }
 
     if (this.renderer && this.camera && this.scene) {
@@ -202,15 +221,53 @@ export class RotateService {
     }
   }
 
-  private rotate(): void {
+  /* Запуск поворота извне
+  * Используется массив из параметров поворота
+  * для каждого элемента запускаем асинхронную функцию this.processRotate
+  * как только закончили обработку всего массива - возвращаем TRUE */
+  public rotate(sides: RotateSideParameters[]): Promise<boolean> {
+    return new Promise(async resolve => {
+      for (const side of sides) {
+        await this.processRotate(side);
+      }
+
+      resolve(true);
+    });
+  }
+
+  /* Обработка поворота для каждого действия (R U y и тд)
+  * просто вставляем this.rotateParameters = side и ждем, когда animate() все выполнит
+  * ждем с помощью setInterval
+  * как только процесс поворота завершен - возвращаем действие
+  * ( можем возвращать что угодно - это ни на что не влияет) */
+  // @ts-ignore
+  private async processRotate(side: RotateSideParameters): Promise<RotateSideParameters> {
+    return new Promise(resolve => {
+      this.rotateParameters = side;
+
+      const interval = setInterval(() => {
+        if (!this.rotateParameters.rotating) {
+          clearInterval(interval);
+
+          resolve(side);
+        }
+      }, 10);
+    });
+  }
+
+
+
+  /* Поворачиваем сторону (rotateSimple) или всю сцену (rotateScene) */
+  /*private rotateOld(): void {
     if (this.rotateObj.cubes) {
       this.rotateSimple();
     } else {
       this.rotateScene();
     }
-  }
+  }*/
 
-  private rotateSimple(): void {
+  /* Поворачиваем сторону и обновляем */
+  /*private rotateSimple(): void {
     const vector = new THREE.Vector3(this.rotateObj.axis === 'x' ? 1 : 0,
       this.rotateObj.axis === 'y' ? 1 : 0,
       this.rotateObj.axis === 'z' ? 1 : 0);
@@ -233,16 +290,15 @@ export class RotateService {
     if (Math.abs(this.rotateObj.cubes[0].rotation[this.rotateObj.axis]) >= this.PI2) {
       this.refreshCubs();
     }
-  }
+  }*/
 
+  /* Поворачиваем сцену */
   private rotateScene(): void {
     if (!this.scene || !this.scene.rotation) {
       return;
     }
 
     this.ticks++;
-
-    // console.log(Math.abs(this.scene?.rotation.y), this.rotateObj.stop);
 
     // @ts-ignore
     this.scene.rotation.y += (this.rotateObj.direction ? -1 : 1) * 0.05;
@@ -264,7 +320,8 @@ export class RotateService {
     }
   }
 
-  private refreshCubs(): void {
+  /* Останавливаем поворот, обновляем цвета (refreshCube) и обновляем кубики (putCubes) */
+  /*private refreshCubs(): void {
     this.rotateObj.rotating = false;
     this.rotateObj.start = 0;
     this.rotateObj.returnPromise = true;
@@ -275,9 +332,10 @@ export class RotateService {
     });
 
     this.putCubes();
-  }
+  }*/
 
-  private refreshCube(cube: THREE.Mesh): void {
+  /* Обновляем цвета */
+  /*private refreshCube(cube: THREE.Mesh): void {
     cube.rotation.set(0, 0, 0);
 
     for (let i = 0; i < 12; i = i + 2) {
@@ -291,28 +349,32 @@ export class RotateService {
     }
 
 // @ts-ignore
-    /*cube.geometry.faces.forEach(face => {
+    /!*cube.geometry.faces.forEach(face => {
       face.color.set(0xcccccc);
-    });*/
+    });*!/
 
     // @ts-ignore
     cube.geometry.colorsNeedUpdate = true;
 
-  }
+  }*/
 
-  private putCubes(): void {
+  /* Обновляем кубики */
+  /*private putCubes(): void {
     this.rotateObj.cubes?.forEach((cube: THREE.Mesh) => {
       cube.position.setX(RotateService.bringPosition(cube.position.x));
       cube.position.setY(RotateService.bringPosition(cube.position.y));
       cube.position.setZ(RotateService.bringPosition(cube.position.z));
 
-      /*cube.rotation.set(RotateService.bringRotation('x', cube.rotation),
+      /!*cube.rotation.set(RotateService.bringRotation('x', cube.rotation),
                         RotateService.bringRotation('y', cube.rotation),
-                        RotateService.bringRotation('z', cube.rotation));*/
+                        RotateService.bringRotation('z', cube.rotation));*!/
     });
-  }
+  }*/
 
-  public rotateSide(side: string): Promise<boolean> {
+
+
+  /* Запуск поворота извне. Поворот стороны (prepareRotateSimple) или сцены (prepareRotateScene) */
+  /*public rotateSide(side: string): Promise<boolean> {
     const s = side[0];
 
     return new Promise(resolve => {
@@ -330,22 +392,10 @@ export class RotateService {
         }
       }, 100);
     });
-  }
+  }*/
 
-
-
-  private getMovingCubes(axis: string, isPlus: boolean): (THREE.Mesh[] | undefined) {
-    if (this.rotationScene.y === 1 || this.rotationScene.y === 3) {
-      axis = 'z';
-    }
-
-    return this.cubs?.filter((cube: THREE.Mesh) => {
-      // @ts-ignore
-      return (cube.position[axis] === (isPlus ? 1 : -1) * this.nextCubePosition);
-    });
-  }
-
-  private prepareRotateSimple(side: string): void {
+  /* Запуск поворота стороны, находим поворачиваемые кубики (getMovingCubes) */
+  /*private prepareRotateSimple(side: string): void {
     // @ts-ignore
     const movingCubes = this.getMovingCubes(this.rotationParameters[side].axis, this.rotationParameters[side].isPlus);
 
@@ -361,8 +411,9 @@ export class RotateService {
       side,
       returnPromise: false
     };
-  }
+  }*/
 
+  /* Запуск поворота сцены */
   private prepareRotateScene(side: string): void {
     this.rotateObj = {
       rotating: true,
@@ -379,4 +430,16 @@ export class RotateService {
       returnPromise: false
     };
   }
+
+  /* Находим поворачиваемые кубики */
+  /*private getMovingCubes(axis: string, isPlus: boolean): (THREE.Mesh[] | undefined) {
+    if (this.rotationScene.y === 1 || this.rotationScene.y === 3) {
+      axis = 'z';
+    }
+
+    return this.cubs?.filter((cube: THREE.Mesh) => {
+      // @ts-ignore
+      return (cube.position[axis] === (isPlus ? 1 : -1) * this.nextCubePosition);
+    });
+  }*/
 }

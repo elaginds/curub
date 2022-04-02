@@ -3,10 +3,11 @@ import {Component, OnInit} from '@angular/core';
 import * as THREE from 'three';
 import {CubsService} from './services/cubs.service';
 import {ColorsService} from './services/colors.service';
-import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
 import {RotateService} from './services/rotate.service';
 import {SolveService} from './services/solve.service';
 import {RotateControlService} from './services/rotate-control';
+import {SceneService} from './services/scene.service';
+import {RotateSideParameters} from './classes/RotateSideParameters';
 
 @Component({
   selector: 'app-root',
@@ -19,9 +20,6 @@ export class AppComponent implements OnInit {
     disableButtons: false
   };
   cubs: THREE.Mesh[] = [];
-  scene: THREE.Scene = new THREE.Scene();
-  camera: THREE.Camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
-  renderer: THREE.WebGLRenderer = new THREE.WebGLRenderer();
 
 
   ngOnInit(): void {
@@ -31,34 +29,25 @@ export class AppComponent implements OnInit {
   constructor(private colorsService: ColorsService,
               private cubsService: CubsService,
               private rotateService: RotateService,
+              private sceneService: SceneService,
               private rotateControlService: RotateControlService,
               public solveService: SolveService) {
-    const colors = colorsService.createColors();
-    this.cubs = cubsService.createCubs(colors);
   }
 
   private init(): void {
-    this.scene.background = new THREE.Color(0x000000);
+    const sceneParameters = this.sceneService.create();
 
-    this.renderer.setSize( window.innerWidth, window.innerHeight );
-    // @ts-ignore
-    document.getElementById('container').appendChild( this.renderer.domElement );
-
-    this.camera.position.z = 11;
-    this.scene.rotation.set(0.4, 1.1, 0);
-
-    const controls = new OrbitControls( this.camera, this.renderer.domElement );
-
-    this.cubs.forEach((cube: THREE.Mesh) => {
-      // @ts-ignore
-      this.scene.add(cube);
-    });
-
-    this.rotateService.runAnimate(this.renderer, this.scene, this.camera, this.cubs);
+    this.rotateService.runAnimate(sceneParameters);
   }
 
-  public onSideClick(side: string): void {
-    const sideArr = side.split(' ');
+  public onRotateClick(sides: RotateSideParameters[]): void {
+    this.rotateService.rotate(sides).then(result => {
+      this.emitControls = {
+        disableButtons: false
+      };
+    });
+
+    /*const sideArr = side.split(' ');
     let key = 0;
 
     const rotateSide = (sd: string) => {
@@ -76,8 +65,8 @@ export class AppComponent implements OnInit {
       });
     };
 
-    rotateSide(sideArr[key]);
+    rotateSide(sideArr[key]);*/
 
-    this.rotateControlService.getRotateParameters(this.cubs, sideArr[key]);
+    // this.rotateControlService.getRotateParameters(this.cubs, sideArr[key]);
   }
 }
