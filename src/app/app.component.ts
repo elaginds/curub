@@ -1,11 +1,8 @@
 import {Component, OnInit} from '@angular/core';
-
-import * as THREE from 'three';
 import {CubsService} from './services/cubs.service';
 import {ColorsService} from './services/colors.service';
 import {RotateService} from './services/rotate.service';
 import {SolveService} from './services/solve.service';
-import {RotateControlService} from './services/rotate-control';
 import {SceneService} from './services/scene.service';
 import {RotateSideParameters} from './classes/RotateSideParameters';
 
@@ -19,7 +16,6 @@ export class AppComponent implements OnInit {
   emitControls = {
     disableButtons: false
   };
-  cubs: THREE.Mesh[] = [];
 
 
   ngOnInit(): void {
@@ -30,7 +26,6 @@ export class AppComponent implements OnInit {
               private cubsService: CubsService,
               private rotateService: RotateService,
               private sceneService: SceneService,
-              private rotateControlService: RotateControlService,
               public solveService: SolveService) {
   }
 
@@ -41,7 +36,7 @@ export class AppComponent implements OnInit {
   }
 
   public onRotateClick(sides: RotateSideParameters[]): void {
-    this.rotateService.rotate(sides).then(result => {
+    this.rotateService.rotate(sides).then(() => {
       this.emitControls = {
         disableButtons: false
       };
@@ -68,5 +63,9 @@ export class AppComponent implements OnInit {
     rotateSide(sideArr[key]);*/
 
     // this.rotateControlService.getRotateParameters(this.cubs, sideArr[key]);
+  }
+
+  public onSolveClick(): void {
+    this.rotateService.solve();
   }
 }

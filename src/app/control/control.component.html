@@ -5,9 +5,9 @@
   <br>
   <button class="buttons-down" [disabled]="buttonDisabled" *ngFor="let side of buttonsDown" (click)="onClick(side.params)">{{side.label}}</button>
   <br>
-  <!--<button class="buttons-down" [disabled]="buttonDisabled" (click)="onRandomClick()">Random</button>
+  <button class="buttons-down" [disabled]="buttonDisabled" (click)="onRandomClick()">Random</button>
   <button class="buttons-down" [disabled]="buttonDisabled || !savedMoves.length" (click)="onReverseSolveClick()">Solve Reverse</button>
-  <button class="buttons-down" [disabled]="buttonDisabled || !savedMoves.length" (click)="onTrueSolveClick()">True Solve</button>
+  <button class="buttons-down" [disabled]="buttonDisabled" (click)="onTrueSolveClick()">True Solve</button>
   <br>
-  <p class="saved-moves">{{savedMovesView}}</p>-->
+  <p class="saved-moves">{{savedMovesView}}</p>
 </div>

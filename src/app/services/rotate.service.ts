@@ -235,6 +235,21 @@ export class RotateService {
     });
   }
 
+
+  public solve(): Promise<boolean> {
+    // @ts-ignore
+    this.cubs[0].visible = false;
+    // @ts-ignore
+    this.cubs[1].visible = false;
+    console.log(this.cubs?.map(item => {
+      return `${item.id} - ${item.position.x} ${item.position.y} ${item.position.z}`;
+    }));
+
+    return new Promise(resolve => {
+      resolve(true);
+    });
+  }
+
   /* Обработка поворота для каждого действия (R U y и тд)
   * просто вставляем this.rotateParameters = side и ждем, когда animate() все выполнит
   * ждем с помощью setInterval
